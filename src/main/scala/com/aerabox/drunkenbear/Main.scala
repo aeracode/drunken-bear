@@ -27,7 +27,9 @@ case class Config(startUrl: String = "http://minecraft-ru.gamepedia.com/Загл
 
 object Main extends App {
 
-  def process(url: String, config: Config = new Config): Unit = {
+  val processed: collection.mutable.Set[String] = collection.mutable.Set.empty
+
+  def process(startUrl: String, config: Config = new Config): Unit = {
 
     def loadUrl(url: String): Document = {
       log("\tloadUrl: "+url)
@@ -76,7 +78,7 @@ object Main extends App {
       val result = if (href == null) false
       else if (href.isEmpty) false
       else localUrl(href)
-      
+
       log(s"VALID: $href? $result")
 
       result
@@ -90,7 +92,13 @@ object Main extends App {
       else href
     }
 
-    log(s"process: $url")
+    log(s"process: $startUrl")
+
+    // mark porcessed
+    processed += startUrl;
+
+    val url = correctHost(startUrl, config.host)
+    println("URL "+url)
 
     try {
 
@@ -110,15 +118,9 @@ object Main extends App {
         (_, es) <- content
         a <- es.select("a").listIterator
         href = a.attr("href")
-        if valid(href)
-      } {
-        val url = correctHost(href, config.host)
-        println("URL "+url)
-        process(url, config)
-      }
+        if !processed.contains(href) && valid(href)
+      } process(href, config)
 
-      // mark porcessed
-      // urls filter (processed) do process 
     } catch {
       case e: Throwable => log("FAIL: "+url); e.printStackTrace
     }
