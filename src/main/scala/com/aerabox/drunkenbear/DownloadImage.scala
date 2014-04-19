@@ -17,12 +17,12 @@ object DownloadImage {
     var in: InputStream = null;
 
     try {
+      val localfile = new File(to)
+      if (localfile.exists) { print("o"); return }
       val url = new URL(from)
       val connection = url.openConnection().asInstanceOf[HttpURLConnection]
       connection.setRequestMethod("GET")
       in = connection.getInputStream
-      val localfile = new File(to)
-      if (localfile.exists) { print("o"); return }
       print("*");
       out = new BufferedOutputStream(new FileOutputStream(localfile))
       val byteArray = Stream.continually(in.read).takeWhile(-1 != _).map(_.toByte).toArray

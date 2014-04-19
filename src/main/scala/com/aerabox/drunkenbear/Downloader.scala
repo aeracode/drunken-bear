@@ -12,7 +12,8 @@ import java.io.File
 
 object Downloader extends App {
 
-  val outdir = "output/"
+  val index = "http://minecraft-ru.gamepedia.com/Industrial_Craft2"
+  val outdir = "output/ic2/"
 
   val exclude = List(
     """.*index\.php\?.*""",
@@ -20,15 +21,13 @@ object Downloader extends App {
     """.*Обсуждение.*""")
 
   val include = List(
-    """http:\/\/minecraft-ru.gamepedia.com\/.*""")
+    """http:\/\/minecraft-ru.gamepedia.com\/Industrial_Craft2.*""")
 
   val chars = """[\\/:*?"<>|]"""
 
-  val maxDeep = 5
+  val maxDeep = 6
 
   val utf8 = "utf-8"
-
-  val imgOutDir = outdir+"img/"
 
   def getWeb(url: String) = Jsoup.connect(url).userAgent("Mozilla").followRedirects(true).timeout(30000).get()
   def save(content: String, file: String) = Some(new FileWriter(file)) foreach { writer ⇒ writer.write(content); writer.close }
@@ -62,8 +61,10 @@ object Downloader extends App {
 
   val downloaded = mutable.HashSet.empty[String]
   val downloadedImages = mutable.HashSet.empty[String]
+
   var totalUrls = 0
   var processedUrls = 0
+  var passedUrls = 0
 
   def process(html: Document) = {
 
@@ -90,7 +91,7 @@ object Downloader extends App {
     val urlsCount = urls.length
     totalUrls += urlsCount;
 
-    print(" U:"+urlsCount)
+    print("U:"+urlsCount)
     print("\tI[")
 
     for {
@@ -98,14 +99,14 @@ object Downloader extends App {
         img ← content.select("img").listIterator
         src = ensureAbsoluteURL(html.location, img.attr("src").replaceAll("""\?version=(\d|[a-g])*""", ""))
       } yield {
-        val path = DownloadImage.generateName(src)
+        val path = "img/"+DownloadImage.generateName(src)
         img.attr("src", path)
         (src, path)
       }
       if { val cached = downloadedImages contains to; print{ if (cached) "." else "" }; !cached }
     } {
       downloadedImages += to
-      DownloadImage(from, imgOutDir + to)
+      DownloadImage(from, outdir + to)
     }
 
     println("]")
@@ -121,24 +122,18 @@ object Downloader extends App {
     * @param deep
     */
   def download(from: String, to: String, deep: Int) {
-
     if (deep > maxDeep) return
 
-    println("["+deep+"] "+downloaded.size+"|"+totalUrls+"\t"+to+"\n"+from+"")
+    println(s"\n[$deep] ${downloaded.size}+$passedUrls=${downloaded.size + passedUrls}|$totalUrls\t$to\n$from")
 
     try {
       val (urls, content) = process(getWeb(from))
       save(content, outdir + to)
       downloaded += to
-      for ((from, to) ← urls if !(downloaded contains to)) {
-        download(from, to, deep + 1)
-      }
-    } catch {
-      case e ⇒ System.err.println(e.getMessage)
-    }
+      for ((from, to) ← urls) if (downloaded contains to) passedUrls += 1 else download(from, to, deep + 1)
+    } catch { case e: Exception ⇒ System.err.println(e.getClass.getName + ": " + e.getMessage); downloaded += to }
   }
 
-  val index = "http://minecraft-ru.gamepedia.com/Заглавная_страница"
   download(index, localPath(index), 0)
 
 }
