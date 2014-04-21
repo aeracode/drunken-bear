@@ -15,7 +15,10 @@ object Downloader extends App {
   val cfg = UserConfig
 
   def getWeb(url: String) = Jsoup.connect(url).userAgent("Mozilla").followRedirects(true).timeout(30000).get()
-  def save(content: String, file: String) = Some(new FileWriter(file)) foreach { writer ⇒ writer.write(content); writer.close }
+  def save(content: String, file: String): Unit = {
+    if (new File(file).exists) { print("F"); return }
+    Some(new FileWriter(file)) foreach { writer ⇒ writer.write(content); writer.close }
+  }
 
   val downloaded = mutable.HashSet.empty[String]
 
@@ -53,7 +56,13 @@ object Downloader extends App {
       save(content, cfg.outdir + to)
       downloaded += to
       totalUrls += urls.size;
-      for (FromTo(web, file) ← urls) if (downloaded contains file) passedUrls += 1 else download(web, file, deep + 1)
+      for (FromTo(web, file) ← urls) if (downloaded contains file) passedUrls += 1 else {
+        if (!cfg.checkWebForAlreadyDownloadedFile && new File(cfg.outdir + file).exists) {
+          print("+");
+        } else {
+          download(web, file, deep + 1)
+        }
+      }
     } catch { case e: Exception ⇒ System.err.println(e.getClass.getName+": "+e.getMessage); downloaded += to }
   }
 

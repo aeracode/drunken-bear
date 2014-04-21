@@ -8,9 +8,11 @@ trait Configuration {
   val startUrl: String
   val outdir: String
   val deep: Int
+  val checkWebForAlreadyDownloadedFile: Boolean
   val exclude: List[String]
   val include: List[String]
-  val includeForFutureDownload: List[String]
+  val updateLinkOnly: List[String]
+  val updatePriority: Boolean
 
   val winBadChars = """[\\/:*?"<>|]"""
 
@@ -25,9 +27,16 @@ trait Configuration {
 
   def actionFor(url: String): Action = {
     if (exclude exists url.matches) Ignore
-    else if (include exists url.matches) Download
-    else if (includeForFutureDownload exists url.matches) UpdateLinkOnly
-    else Ignore
+    else if (updatePriority) {
+      if (updateLinkOnly exists url.matches) UpdateLinkOnly
+      else if (include exists url.matches) Download
+      else Ignore
+    } else {
+      if (include exists url.matches) Download
+      else if (updateLinkOnly exists url.matches) UpdateLinkOnly
+      else Ignore
+    }
+
   }
 
 }
