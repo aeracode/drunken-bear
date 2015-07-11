@@ -17,7 +17,7 @@ object Downloader extends App {
   def getWeb(url: String) = Jsoup.connect(url).userAgent("Mozilla").followRedirects(true).timeout(30000).get()
   def save(content: String, file: String): Unit = {
     if (new File(file).exists) { print("F"); return }
-    Some(new FileWriter(file)) foreach { writer ⇒ writer.write(content); writer.close }
+    Some(new FileWriter(file)) foreach { writer => writer.write(content); writer.close }
   }
 
   val downloaded = mutable.HashSet.empty[String]
@@ -30,15 +30,15 @@ object Downloader extends App {
 
     val results = Content(html, cfg).process()
 
-    print("U:"+results.urls.size)
+    print("U:" + results.urls.size)
 
     print("\tI[")
     for (FromTo(web, file) ← results.imgs)
       if (DownloadImage contains file) print(".")
       else DownloadImage(web, cfg.outdir, file) match {
-        case Some(true)  ⇒ print("*")
-        case Some(false) ⇒ print("o")
-        case None        ⇒ print("!")
+        case Some(true)  => print("*")
+        case Some(false) => print("o")
+        case None        => print("!")
       }
     println("]")
 
@@ -63,7 +63,7 @@ object Downloader extends App {
           download(web, file, deep + 1)
         }
       }
-    } catch { case e: Exception ⇒ System.err.println(e.getClass.getName+": "+e.getMessage); downloaded += to }
+    } catch { case e: Exception => System.err.println(e.getClass.getName + ": " + e.getMessage); downloaded += to }
   }
 
   def download(): Unit = download(cfg.startUrl, cfg.localPath(cfg.startUrl), 0)

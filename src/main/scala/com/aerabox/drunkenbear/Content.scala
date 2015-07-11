@@ -53,9 +53,9 @@ private class JsoupConent(doc: Document, cfg: Configuration) extends Content {
       href ← getHref(a)
       url = URLDecoder.decode(ensureAbsoluteURL(doc.location, href), UTF_8)
     } cfg.actionFor(url) match {
-      case Ignore         ⇒ // TODO: Do js confirm dialog
-      case UpdateLinkOnly ⇒ updHref(a, cfg.localPath(url))
-      case Download       ⇒ val file = cfg.localPath(url); updHref(a, file); urls += FromTo(url, file);
+      case Ignore         => // TODO: Do js confirm dialog
+      case UpdateLinkOnly => updHref(a, cfg.localPath(url))
+      case Download       => val file = cfg.localPath(url); updHref(a, file); urls += FromTo(url, file);
     }
     return urls
   }
@@ -87,7 +87,7 @@ private class JsoupConent(doc: Document, cfg: Configuration) extends Content {
       try {
         URI.create(base).resolve(url).toString
       } catch {
-        case e: IllegalArgumentException ⇒
+        case e: IllegalArgumentException =>
           System.err.println(e.getMessage)
           new URL(new URL(base), url).toString
       }

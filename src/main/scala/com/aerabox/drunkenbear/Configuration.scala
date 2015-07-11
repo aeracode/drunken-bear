@@ -20,7 +20,7 @@ trait Configuration {
     val name = try {
       URI.create(webUrl).getPath.substring(1)
     } catch {
-      case e: IllegalArgumentException ⇒ new URL(webUrl).getPath
+      case e: IllegalArgumentException => new URL(webUrl).getPath
     }
     name.replaceAll(winBadChars, "-")+".html"
   }

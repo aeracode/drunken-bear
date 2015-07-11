@@ -1,8 +1,5 @@
 package com.aerabox.drunkenbear
 
-import scala.xml.Node
-import scala.xml.XML
-
 object Template {
 
   def apply(src: String): String =
@@ -13,7 +10,7 @@ object Template {
      *                           *
      * * * * * * * * * * * * * * */
 
-    """<!-- 2014  -->
+    """<!-- 2015  -->
 <html>
  <head>
   <meta charset="UTF-8">
